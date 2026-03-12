@@ -25,6 +25,11 @@ jobs:
       TF_VAR_doks_node_name: ${{ vars.DOKS_NODE_NAME }}
       TF_VAR_db_database_name: ${{ vars.DB_DATABASE_NAME }}
       TF_VAR_db_cluster_name: ${{ vars.DB_CLUSTER_NAME }}
+      TF_VAR_pg_db_cluster_name: ${{ vars.TF_VAR_pg_db_cluster_name }} 
+      TF_VAR_pg_db_database_name: ${{ vars.TF_VAR_pg_db_database_name }} 
+      TF_VAR_mysql_cluster_name: ${{ vars.TF_VAR_mysql_cluster_name }} 
+      TF_VAR_mysql_database_name_video: ${{ vars.TF_VAR_mysql_database_name_video }} 
+      TF_VAR_mysql_database_name_auth: ${{ vars.TF_VAR_mysql_database_name_auth }} 
 
     steps:
       - name: Checkout repository
