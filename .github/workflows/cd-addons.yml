@@ -1,0 +1,76 @@
+name: CD Addons
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "k8s/addons/**"
+      - ".github/workflows/cd-addons.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-addons:
+    name: Deploy cluster addons
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Save kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ secrets.DO_K8S_CLUSTER_NAME }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+          helm repo update
+
+      - name: Deploy ingress-nginx
+        run: |
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            -f k8s/addons/ingress-nginx/values.yaml
+
+      - name: Deploy rabbitmq
+        run: |
+          helm upgrade --install rabbitmq bitnami/rabbitmq \
+            --namespace hackaton \
+            --create-namespace \
+            -f k8s/addons/rabbitmq/values.yaml
+
+      - name: Deploy monitoring stack
+        run: |
+          helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stack \
+            --namespace monitoring \
+            --create-namespace \
+            -f k8s/addons/monitoring/values.yaml
+
+      - name: Deploy metrics-server
+        run: |
+          helm upgrade --install metrics-server metrics-server/metrics-server \
+            --namespace kube-system \
+            -f k8s/addons/metrics-server/values.yaml
+
+      - name: Validate pods
+        run: |
+          kubectl get pods -n ingress-nginx
+          kubectl get pods -n hackaton
+          kubectl get pods -n monitoring
+          kubectl get pods -n kube-system | grep metrics-server || true

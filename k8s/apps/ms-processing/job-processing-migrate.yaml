@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: processing-migrate
+  namespace: hackaton
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: processing-secrets
+                  key: POSTGRES_URL
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+              readOnly: true
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "Running processing migrations..."
+              psql "$POSTGRES_URL" -v ON_ERROR_STOP=1 -f /migrations/001_create_processing_jobs.sql
+              echo "Migrations finished."
+      volumes:
+        - name: migrations
+          configMap:
+            name: processing-config

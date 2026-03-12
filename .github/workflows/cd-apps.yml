@@ -1,0 +1,102 @@
+name: CD Apps
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "k8s/apps/**"
+      - ".github/workflows/cd-apps.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-apps:
+    name: Deploy applications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Save kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ secrets.DO_K8S_CLUSTER_NAME }}
+
+      - name: Apply auth-secrets
+        run: |
+          kubectl create secret generic auth-secrets \
+            -n hackaton \
+            --from-literal=DB_URL='${{ secrets.DB_AUTH_URL }}' \
+            --from-literal=DB_USERNAME='${{ secrets.DB_AUTH_USERNAME }}' \
+            --from-literal=DB_PASSWORD='${{ secrets.DB_AUTH_PASSWORD }}' \
+            --from-literal=JWT_SECRET='${{ secrets.JWT_AUTH_SECRET }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply auth 
+        run: kubectl apply -f k8s/apps/ms-auth/
+
+      - name: Apply video-secrets
+        run: |
+          kubectl create secret generic video-secrets \
+            -n hackaton \
+            --from-literal=DB_URL='${{ secrets.VIDEO_DB_URL }}' \
+            --from-literal=DB_USERNAME='${{ secrets.VIDEO_DB_USERNAME }}' \
+            --from-literal=DB_PASSWORD='${{ secrets.VIDEO_DB_PASSWORD }}' \
+            --from-literal=RABBITMQ_USERNAME='${{ secrets.VIDEO_RABBITMQ_USERNAME }}' \
+            --from-literal=RABBITMQ_PASSWORD='${{ secrets.VIDEO_RABBITMQ_PASSWORD }}' \
+            --from-literal=AWS_ACCESS_KEY_ID='${{ secrets.S3_ACCESS_KEY_ID }}' \
+            --from-literal=AWS_SECRET_ACCESS_KEY='${{ secrets.S3_SECRET_ACCESS_KEY }}' \
+            --from-literal=JWT_SECRET='${{ secrets.VIDEO_JWT_SECRET }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply video 
+        run: kubectl apply -f k8s/apps/ms-video/
+      
+      - name: Apply processing-secrets
+        run: |
+          kubectl create secret generic processing-secrets \
+            -n hackaton \
+            --from-literal=LOCALSTACK_AUTH_TOKEN='${{ secrets.LOCALSTACK_AUTH_TOKEN }}' \
+            --from-literal=POSTGRES_URL='${{ secrets.PROCESSING_POSTGRES_URL }}' \
+            --from-literal=RABBITMQ_URL='${{ secrets.PROCESSING_RABBITMQ_URL }}' \
+            --from-literal=S3_ACCESS_KEY_ID='${{ secrets.S3_ACCESS_KEY_ID }}' \
+            --from-literal=S3_SECRET_ACCESS_KEY='${{ secrets.S3_SECRET_ACCESS_KEY }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply configmaps for processing
+        run: |
+          kubectl apply -f k8s/apps/ms-processing/configmap.yaml
+
+      - name: Apply processing migration configmap
+        run: kubectl apply -f k8s/apps/ms-processing/configmap-processing-migrations.yaml
+
+      - name: Recreate processing migration job
+        run: |
+          kubectl delete job processing-migrate -n hackaton --ignore-not-found
+          kubectl apply -f k8s/apps/ms-processing/job-processing-migrate.yaml
+
+      - name: Wait processing migration
+        run: kubectl wait --for=condition=complete job/processing-migrate -n hackaton --timeout=180s
+
+      - name: Apply processing 
+        run: kubectl apply -f k8s/apps/ms-processing/
+
+      - name: Check deployments
+        run: |
+          kubectl rollout status deployment/auth -n hackaton --timeout=180s
+          kubectl rollout status deployment/video -n hackaton --timeout=180s
+          kubectl rollout status deployment/processing -n hackaton --timeout=180s
+
+      - name: Show resources
+        run: |
+          kubectl get pods -n hackaton
+          kubectl get svc -n hackaton
+          kubectl get jobs -n hackaton
