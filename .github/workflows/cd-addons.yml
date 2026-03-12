@@ -60,13 +60,13 @@ jobs:
           helm upgrade --install kube-prometheus prometheus-community/kube-prometheus-stack \
             --namespace monitoring \
             --create-namespace \
-            -f k8s/addons/monitoring/values.yaml
+            -f k8s/addons/monitoramento/values.yaml
 
       - name: Deploy metrics-server
         run: |
           helm upgrade --install metrics-server metrics-server/metrics-server \
             --namespace kube-system \
-            -f k8s/addons/metrics-server/values.yaml
+            -f k8s/addons/metric-server/values.yaml
 
       - name: Validate pods
         run: |

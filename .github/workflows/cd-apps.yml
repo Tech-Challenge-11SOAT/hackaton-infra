@@ -76,7 +76,7 @@ jobs:
           kubectl apply -f k8s/apps/ms-processing/configmap.yaml
 
       - name: Apply processing migration configmap
-        run: kubectl apply -f k8s/apps/ms-processing/configmap-processing-migrations.yaml
+        run: kubectl apply -f k8s/apps/ms-processing/job-processing-migrate.yaml
 
       - name: Recreate processing migration job
         run: |
