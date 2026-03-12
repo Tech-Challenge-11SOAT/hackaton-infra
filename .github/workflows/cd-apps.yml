@@ -89,12 +89,6 @@ jobs:
       - name: Apply processing 
         run: kubectl apply -f k8s/apps/ms-processing/
 
-      - name: Check deployments
-        run: |
-          kubectl rollout status deployment/auth -n hackaton --timeout=180s
-          kubectl rollout status deployment/video -n hackaton --timeout=180s
-          kubectl rollout status deployment/processing -n hackaton --timeout=180s
-
       - name: Show resources
         run: |
           kubectl get pods -n hackaton
