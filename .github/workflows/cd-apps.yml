@@ -43,6 +43,9 @@ jobs:
       - name: Apply auth 
         run: kubectl apply -f k8s/apps/ms-auth/
 
+      - name: Restart auth deployment
+        run: kubectl rollout restart deployment/ms-auth -n hackaton
+
       - name: Apply video-secrets
         run: |
           kubectl create secret generic video-secrets \
@@ -60,6 +63,9 @@ jobs:
       - name: Apply video 
         run: kubectl apply -f k8s/apps/ms-video/
       
+      - name: Restart video deployment
+        run: kubectl rollout restart deployment/ms-video -n hackaton
+
       - name: Apply processing-secrets
         run: |
           kubectl create secret generic processing-secrets \
@@ -75,19 +81,22 @@ jobs:
         run: |
           kubectl apply -f k8s/apps/ms-processing/configmap.yaml
 
-      - name: Apply processing migration configmap
-        run: kubectl apply -f k8s/apps/ms-processing/job-processing-migrate.yaml
-
       - name: Recreate processing migration job
         run: |
           kubectl delete job processing-migrate -n hackaton --ignore-not-found
-          kubectl apply -f k8s/apps/ms-processing/job-processing-migrate.yaml
+          kubectl apply -f k8s/apps/job/job-processing-migrate.yaml
 
       - name: Wait processing migration
         run: kubectl wait --for=condition=complete job/processing-migrate -n hackaton --timeout=180s
 
+      - name: Delete processing migration job
+        run: kubectl delete job processing-migrate -n hackaton --ignore-not-found
+
       - name: Apply processing 
         run: kubectl apply -f k8s/apps/ms-processing/
+
+      - name: Restart processing deployment
+        run: kubectl rollout restart deployment/ms-processing -n hackaton
 
       - name: Show resources
         run: |

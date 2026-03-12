@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: video
-          image: nicolasmartinss/hackaton-video:v2
+          image: nicolasmartinss/hackaton-video:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
