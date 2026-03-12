@@ -44,7 +44,7 @@ jobs:
         run: kubectl apply -f k8s/apps/ms-auth/
 
       - name: Restart auth deployment
-        run: kubectl rollout restart deployment/ms-auth -n hackaton
+        run: kubectl rollout restart deployment/auth -n hackaton
 
       - name: Apply video-secrets
         run: |
@@ -64,7 +64,7 @@ jobs:
         run: kubectl apply -f k8s/apps/ms-video/
       
       - name: Restart video deployment
-        run: kubectl rollout restart deployment/ms-video -n hackaton
+        run: kubectl rollout restart deployment/video -n hackaton
 
       - name: Apply processing-secrets
         run: |
@@ -96,7 +96,7 @@ jobs:
         run: kubectl apply -f k8s/apps/ms-processing/
 
       - name: Restart processing deployment
-        run: kubectl rollout restart deployment/ms-processing -n hackaton
+        run: kubectl rollout restart deployment/processing -n hackaton
 
       - name: Show resources
         run: |
