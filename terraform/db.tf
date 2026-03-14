@@ -30,3 +30,8 @@ resource "digitalocean_database_db" "hackaton_mysql_database_auth" {
   cluster_id = digitalocean_database_cluster.hackaton_mysql.id
   name       = var.mysql_database_name_auth
 }
+
+resource "digitalocean_database_db" "hackaton_mysql_database_notification" {
+  cluster_id = digitalocean_database_cluster.hackaton_mysql.id
+  name       = var.mysql_database_name_notification
+}

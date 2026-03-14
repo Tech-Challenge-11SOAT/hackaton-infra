@@ -98,6 +98,23 @@ jobs:
       - name: Restart processing deployment
         run: kubectl rollout restart deployment/processing -n hackaton
 
+      - name: Create or update notification secret
+        run: |
+          kubectl create secret generic notification-secret \
+            -n hackaton \
+            --from-literal=DB_URL='${{ secrets.DB_NOTIFICATION_URL }}' \
+            --from-literal=DB_USERNAME='${{ secrets.DB_NOTIFICATION_USERNAME }}' \
+            --from-literal=DB_PASSWORD='${{ secrets.DB_NOTIFICATION_PASSWORD }}' \
+            --from-literal=RABBITMQ_USERNAME='${{ secrets.NOTIFICATION_RABBITMQ_USERNAME }}' \
+            --from-literal=RABBITMQ_PASSWORD='${{ secrets.NOTIFICATION_RABBITMQ_PASSWORD }}' \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply notification
+        run: kubectl apply -f k8s/apps/ms-notification/
+
+      - name: Restart notification deployment
+        run: kubectl rollout restart deployment/notification -n hackaton
+
       - name: Show resources
         run: |
           kubectl get pods -n hackaton
