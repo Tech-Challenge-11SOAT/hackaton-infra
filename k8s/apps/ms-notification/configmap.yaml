@@ -9,7 +9,7 @@ data:
   MAIL_HOST: "mailhog-service"
   MAIL_PORT: "1025"
 
-  RABBITMQ_HOST: "rabbitmq-service"
+  RABBITMQ_HOST: "rabbitmq"
   RABBITMQ_PORT: "5672"
   RABBITMQ_LISTENER_AUTO_STARTUP: "true"
   RABBITMQ_RETRY_MAX_ATTEMPTS: "3"

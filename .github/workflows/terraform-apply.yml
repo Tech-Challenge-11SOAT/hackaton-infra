@@ -30,6 +30,7 @@ jobs:
       TF_VAR_mysql_cluster_name: ${{ vars.TF_VAR_mysql_cluster_name }} 
       TF_VAR_mysql_database_name_video: ${{ vars.TF_VAR_mysql_database_name_video }} 
       TF_VAR_mysql_database_name_auth: ${{ vars.TF_VAR_mysql_database_name_auth }} 
+      TF_VAR_mysql_database_name_notification: ${{ vars.TF_VAR_mysql_database_name_notification }}
 
     steps:
       - name: Checkout repository
