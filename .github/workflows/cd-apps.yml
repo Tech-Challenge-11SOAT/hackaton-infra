@@ -100,7 +100,7 @@ jobs:
 
       - name: Create or update notification secret
         run: |
-          kubectl create secret generic notification-secret \
+          kubectl create secret generic notification-secrets \
             -n hackaton \
             --from-literal=DB_URL='${{ secrets.DB_NOTIFICATION_URL }}' \
             --from-literal=DB_USERNAME='${{ secrets.DB_NOTIFICATION_USERNAME }}' \
