@@ -42,3 +42,7 @@ variable "mysql_database_name_video" {
 variable "mysql_database_name_auth" {
   type    = string
 }
+
+variable "mysql_database_name_notification" {
+  type    = string
+}
