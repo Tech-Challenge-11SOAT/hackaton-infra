@@ -28,30 +28,6 @@ spec:
             - configMapRef:
                 name: notification-config
 
-          startupProbe:
-            httpGet:
-              path: /actuator/health/liveness
-              port: 8080
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 12
-
-          readinessProbe:
-            httpGet:
-              path: /actuator/health/readiness
-              port: 8080
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 6
-
-          livenessProbe:
-            httpGet:
-              path: /actuator/health/liveness
-              port: 8080
-            periodSeconds: 20
-            timeoutSeconds: 3
-            failureThreshold: 3
-
           resources:
             requests:
               cpu: 100m
